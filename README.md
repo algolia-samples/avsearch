@@ -1,2 +1,3 @@
-# avsearch
-Automated av content transcription search for your website
+# AVSearch
+
+Automated Audio/Video content transcription search for your website
