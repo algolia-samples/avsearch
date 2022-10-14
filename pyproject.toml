@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "avsearch"
+version = "0.1.0"
+description = "Automated YouTube Audio/Video content transcription search for your website"
+authors = ["Michael King <michael.king@algolia.com>", "Chuck Meyer <chuck.meyer@algolia.com>"]
+readme = "README.md"
+license = "MIT"
+homepage = "https://github.com/algolia-samples/avsearch"
+repository = "https://github.com/algolia-samples/avsearch"
+documentation = "https://github.com/algolia-samples/avsearch"
+keywords = ["algolia", "youtube", "audio", "transcribe"]
+classifiers = [
+    "Topic :: Multimedia",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence"
+]
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/algolia-samples/avsearch/issues"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+algoliasearch = "^2.6.2"
+youtube-dl = "^2021.12.17"
+click = "^8.1.3"
+schema = "^0.7.5"
+whisper = {git = "https://github.com/openai/whisper.git"}
+
+[tool.poetry.scripts]
+av-search = "avsearch:cli"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
