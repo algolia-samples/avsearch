@@ -27,7 +27,7 @@ def load_config(app_id: str, index_name: str, api_key: str) -> Tuple[str, str, s
     }
     # Check if configuration was passed via an argument
     if not all(map(lambda item: item["cli"], config.values())):
-        env_config = map(lambda item: item["env"], config.values())
+        env_config = list(map(lambda item: item["env"], config.values()))
         # If the configuration is missing from the environment variables as well, raise an exception
         if not all(env_config):
             missing = map(
