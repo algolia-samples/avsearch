@@ -84,15 +84,20 @@ class AVSearch:
 
         # For each file downloaded, transcribe the audio file
         transcriptions = []
-        for file in self._downloaded:
+        for file_id, file in enumerate(self._downloaded):
             file = file.decode("utf-8")
+            url = urls[file_id]
+            if not self.quiet:
+                logging.info(f"Retrieving metadata for: {url}")
+            with youtube_dl.YoutubeDL(self.ytdl_opts) as ydl:
+                meta = ydl.extract_info(url, download=False)
             if not self.quiet:
                 logging.info(f"Starting transcription of: {file}")
             result = self._model.transcribe(file)
             transcriptions.append(
                 list(
                     map(
-                        lambda segment: self._parse_segment(file, segment),
+                        lambda segment: self._parse_segment(file, meta, segment),
                         self._combine_segments(result["segments"])
                         if self.combine_short_segments
                         else result["segments"],
@@ -127,14 +132,17 @@ class AVSearch:
         if file["status"] == "finished":
             self._downloaded.append(file["filename"].encode("utf-8"))
 
-    def _parse_segment(self, file: str, segment):
+    def _parse_segment(self, file: str, meta, segment):
         chunks = file.split(".")[0].split("-")
         video_id = chunks.pop()
         video_title = "-".join(chunks)
         return {
             "objectID": str(uuid.uuid4()),
-            "videoID": video_id,
-            "videoTitle": video_title,
+            "videoID": meta["id"],
+            "videoTitle": meta["title"],
+            "videoDescription": meta["description"],
+            "url": f'https://youtu.be/{meta["id"]}?t={round(segment["start"], 2):.0f}',
+            "thumbnail": meta['thumbnails'][0]['url'],
             "text": segment["text"].strip(),
             "start": round(segment["start"], 2),
             "end": round(segment["end"], 2),
