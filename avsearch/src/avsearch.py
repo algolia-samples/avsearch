@@ -133,9 +133,6 @@ class AVSearch:
             self._downloaded.append(file["filename"].encode("utf-8"))
 
     def _parse_segment(self, file: str, meta, segment):
-        chunks = file.split(".")[0].split("-")
-        video_id = chunks.pop()
-        video_title = "-".join(chunks)
         return {
             "objectID": str(uuid.uuid4()),
             "videoID": meta["id"],
