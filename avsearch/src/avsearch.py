@@ -97,8 +97,14 @@ class AVSearch:
                 meta = ydl.extract_info(url, download=False)
 
             # Extract specific video metadata if a playlist is used
-            if 'entries' in meta:
-                record = next(filter(lambda entry: entry['id'] == self._get_video_id(file), meta['entries']), None)
+            if "entries" in meta:
+                record = next(
+                    filter(
+                        lambda entry: entry["id"] == self._get_video_id(file),
+                        meta["entries"],
+                    ),
+                    None,
+                )
                 if record is None:
                     logging.error(
                         f"Unable to locate metadata record for file, can't process video: {file}"
@@ -156,7 +162,7 @@ class AVSearch:
             "videoTitle": meta["title"],
             "videoDescription": meta["description"],
             "url": f'https://youtu.be/{meta["id"]}?t={round(segment["start"], 2):.0f}',
-            "thumbnail": meta['thumbnails'][0]['url'],
+            "thumbnail": meta["thumbnails"][0]["url"],
             "text": segment["text"].strip(),
             "start": round(segment["start"], 2),
             "end": round(segment["end"], 2),
