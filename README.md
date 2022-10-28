@@ -9,6 +9,11 @@ Automated YouTube Audio/Video content transcription search for your website
 ## 1. Installation
 
 ```shell
+# Install FFmpeg
+brew install ffmpeg # MacOS
+apt install ffmpeg # Linux
+choco install ffmpeg # Windows (Chocolatey)
+
 # Pip
 python3 -m pip install git+https://github.com/algolia-samples/avsearch
 

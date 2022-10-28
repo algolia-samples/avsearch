@@ -1,5 +1,4 @@
 from algoliasearch.search_client import SearchClient
-import json
 import logging
 import os
 import re
@@ -40,7 +39,8 @@ class AVSearch:
 
         # Setup custom logging format
         logging.basicConfig(
-            level=logging.INFO, format="[A/V-Search] [%(levelname)s] %(message)s"
+            level=logging.INFO,
+            format="[A/V-Search] [%(levelname)s] %(message)s",
         )
 
         # Setup YouTube-DL options
@@ -55,15 +55,11 @@ class AVSearch:
 
         # Load, parse and validate JSON files if needed:
         if pattern_replace_json_file:
-            self._cleanup_patterns = load_file(
-                pattern_replace_json_file, cleanup_patterns_schema
-            )
+            self._cleanup_patterns = load_file(pattern_replace_json_file, cleanup_patterns_schema)
         if categories_json_file:
-            self._categories_patterns = load_file(
-                categories_json_file, category_patterns_schema
-            )
+            self._categories_patterns = load_file(categories_json_file, category_patterns_schema)
 
-    def transcribe(self, urls: List[str]):
+    def transcribe(self, urls: List[str]) -> List[dict]:
         self._downloaded.clear()
 
         # Download each video in the queue
@@ -73,9 +69,7 @@ class AVSearch:
         # Check if we were able to download everything if required
         if len(self._downloaded) != len(urls) and self.exit_on_error:
             if not self.quiet:
-                logging.error(
-                    "Error: An error occurred downloading a file and exit_on_error was set to True!"
-                )
+                logging.error("Error: An error occurred downloading a file and exit_on_error was set to True!")
             return
 
         # Ensure the model has been loaded
@@ -106,9 +100,8 @@ class AVSearch:
                     None,
                 )
                 if record is None:
-                    logging.error(
-                        f"Unable to locate metadata record for file, can't process video: {file}"
-                    )
+                    if not self.quiet:
+                        logging.error(f"Unable to locate metadata record for file, can't process video: {file}")
                     return
                 else:
                     meta = record
@@ -138,16 +131,12 @@ class AVSearch:
 
         # All done!
         if not self.quiet:
-            logging.info(
-                f"Successfully saved {len(transcriptions)} transcription segments into your Index."
-            )
+            logging.info(f"Successfully saved {len(transcriptions)} transcription segments into your Index.")
         return transcriptions
 
     def _setup_model(self) -> None:
         if not self.quiet:
-            logging.info(
-                f"Loading Whisper's {self.whisper_model} model, please wait..."
-            )
+            logging.info(f"Loading Whisper's {self.whisper_model} model, please wait...")
         self._model = whisper.load_model(self.whisper_model)
 
     def _progress_hook(self, file: dict) -> None:
@@ -155,7 +144,7 @@ class AVSearch:
         if file["status"] == "finished":
             self._downloaded.append(file["filename"].encode("utf-8"))
 
-    def _parse_segment(self, meta: dict, segment: dict):
+    def _parse_segment(self, meta: dict, segment: dict) -> dict:
         return {
             "objectID": str(uuid.uuid4()),
             "videoID": meta["id"],
@@ -169,7 +158,7 @@ class AVSearch:
             "categories": self._categorize_segment(segment["text"]),
         }
 
-    def _combine_segments(self, segments: List[dict]):
+    def _combine_segments(self, segments: List[dict]) -> List[dict]:
         stale_indexes = []
         for index, segment in enumerate(segments):
             segment["text"] = self._cleanup_text(segment["text"].strip())
@@ -186,9 +175,7 @@ class AVSearch:
 
     def _categorize_segment(self, text: str) -> List[str]:
         categories = map(
-            lambda pat: pat["category"]
-            if re.search(pat["symbol"], text, flags=re.I)
-            else None,
+            lambda pat: pat["category"] if re.search(pat["symbol"], text, flags=re.I) else None,
             self._categories_patterns,
         )
         return list(filter(lambda val: val is not None, categories))

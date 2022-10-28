@@ -19,12 +19,14 @@ from .utils import load_config
 )
 @click.option(
     "--algolia-index-name",
-    help="Algolia Index name to upload the transcriptions to (can also be set via the environment variable ALGOLIA_INDEX_NAME)",
+    help="""Algolia Index name to upload the transcriptions to
+    (can also be set via the environment variable ALGOLIA_INDEX_NAME)""",
     default=None,
 )
 @click.option(
     "--algolia-api-key",
-    help="Algolia Write API Key to upload the transcriptions with (can also be set via the environment variable ALGOLIA_API_KEY)",
+    help="""Algolia Write API Key to upload the transcriptions with
+    (can also be set via the environment variable ALGOLIA_API_KEY)""",
     default=None,
 )
 @click.option(
@@ -75,9 +77,7 @@ def cli(
     remove_after_transcribe: bool,
 ):
     # If the configuration is not passed via an argument, load it via environment variables
-    app_id, index_name, api_key = load_config(
-        algolia_app_id, algolia_index_name, algolia_api_key
-    )
+    app_id, index_name, api_key = load_config(algolia_app_id, algolia_index_name, algolia_api_key)
 
     # Instantiate class
     avs = AVSearch(
