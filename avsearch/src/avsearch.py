@@ -4,7 +4,6 @@ import os
 from pathlib import PosixPath
 import re
 from typing import List
-import uuid
 import whisper
 import youtube_dl
 
@@ -163,7 +162,7 @@ class AVSearch:
 
     def _parse_segment(self, meta: dict, segment: dict) -> dict:
         return {
-            "objectID": str(uuid.uuid4()),
+            "objectID": f"{meta['id']}-{segment['id']}",
             "videoID": meta["id"],
             "videoTitle": meta["title"],
             "videoDescription": meta["description"],
