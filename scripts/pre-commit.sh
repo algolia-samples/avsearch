@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Ensure we are within a poetry shell
 if [ -z $POETRY_ACTIVE ]; then
     echo "Poetry shell not active, attempting to start..."
@@ -26,6 +28,8 @@ flake8 \
 if [ $? -ne 0 ]; then
     echo "An issue was observed with Flake8 - double check the output and re-run if needed."
     exit 1
+else
+    echo "Flake8 checked passed!"
 fi
 
 echo "All done!";
