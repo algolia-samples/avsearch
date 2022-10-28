@@ -23,9 +23,14 @@ python3 -m pip install avsearch-?.?.?-py3-none-any.whl
 # From source
 git clone https://github.com/algolia-samples/avsearch
 cd avsearch
+
 # https://python-poetry.org/docs/#installation
 poetry install && poetry build
+
+# Optionally, install the wheel file
 python3 -m pip install ./dist/avsearch-?.?.?-py3-none-any.whl
+# Or, use poetry's shell
+poetry shell
 ```
 
 ## 2. Set up Algolia
@@ -52,7 +57,9 @@ av-search --targets "https://youtu.be/dQw4w9WgXcQ,https://youtu.be/_C9PMLr_XC8"
 from avsearch import AVSearch
 
 avs = AVSearch(app_id='AAAA1234', ...)
-avs.transcribe(["https://www.youtube.com/watch?v=zOz-Sk4K-64&list=PLuHdbqhRgWHLRlmvQ1OKLdjslSxXrAAjk"])
+results = avs.transcribe(
+    ["https://www.youtube.com/watch?v=zOz-Sk4K-64&list=PLuHdbqhRgWHLRlmvQ1OKLdjslSxXrAAjk"]
+)
 ```
 
 ---
@@ -65,7 +72,11 @@ avs.transcribe(["https://www.youtube.com/watch?v=zOz-Sk4K-64&list=PLuHdbqhRgWHLR
 
 # Contributing
 
-This project is open source and welcomes contributions. We only ask that you adhere to our [Code of Conduct](https://github.com/algolia-samples/.github/blob/master/CODE_OF_CONDUCT.md) when contributing.
+This project is open source and welcomes contributions. We only ask that you adhere to our [Code of Conduct](https://github.com/algolia-samples/.github/blob/master/CODE_OF_CONDUCT.md) when contributing and our process outlined below:
+
+1. After completing your change, run the `scripts/pre-commit.sh` script to format and lint your code to fit our styling. This will run [Black](https://github.com/psf/black) and [Flake8](https://github.com/pycqa/flake8) automatically with our settings.
+2. Submit a Pull Request with your changes and request approval.
+3. Allow one week for your code to be reviewed by an Algolia team member. If changes are requested, these will need to be resolved before the changes are merged.
 
 # Authors
 
