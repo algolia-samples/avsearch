@@ -84,20 +84,43 @@ class AVSearch:
 
         # For each file downloaded, transcribe the audio file
         transcriptions = []
-        for file_id, file in enumerate(self._downloaded):
+        for file_index, file in enumerate(self._downloaded):
             file = file.decode("utf-8")
-            url = urls[file_id]
+
+            # Get the main URL (if a playlist), otherwise get the URL for this index
+            url = urls[0] if len(urls) == 1 else urls[file_index]
+
+            # Metadata retrieval
             if not self.quiet:
                 logging.info(f"Retrieving metadata for: {url}")
             with youtube_dl.YoutubeDL(self.ytdl_opts) as ydl:
                 meta = ydl.extract_info(url, download=False)
+
+            # Extract specific video metadata if a playlist is used
+            if "entries" in meta:
+                record = next(
+                    filter(
+                        lambda entry: entry["id"] == self._get_video_id(file),
+                        meta["entries"],
+                    ),
+                    None,
+                )
+                if record is None:
+                    logging.error(
+                        f"Unable to locate metadata record for file, can't process video: {file}"
+                    )
+                    return
+                else:
+                    meta = record
+
+            # Transcription / Parsing
             if not self.quiet:
                 logging.info(f"Starting transcription of: {file}")
             result = self._model.transcribe(file)
             transcriptions.append(
                 list(
                     map(
-                        lambda segment: self._parse_segment(file, meta, segment),
+                        lambda segment: self._parse_segment(meta, segment),
                         self._combine_segments(result["segments"])
                         if self.combine_short_segments
                         else result["segments"],
@@ -127,26 +150,26 @@ class AVSearch:
             )
         self._model = whisper.load_model(self.whisper_model)
 
-    def _progress_hook(self, file) -> None:
+    def _progress_hook(self, file: dict) -> None:
         # Update the list once it has finished downloading
         if file["status"] == "finished":
             self._downloaded.append(file["filename"].encode("utf-8"))
 
-    def _parse_segment(self, file: str, meta, segment):
+    def _parse_segment(self, meta: dict, segment: dict):
         return {
             "objectID": str(uuid.uuid4()),
             "videoID": meta["id"],
             "videoTitle": meta["title"],
             "videoDescription": meta["description"],
             "url": f'https://youtu.be/{meta["id"]}?t={round(segment["start"], 2):.0f}',
-            "thumbnail": meta['thumbnails'][0]['url'],
+            "thumbnail": meta["thumbnails"][0]["url"],
             "text": segment["text"].strip(),
             "start": round(segment["start"], 2),
             "end": round(segment["end"], 2),
             "categories": self._categorize_segment(segment["text"]),
         }
 
-    def _combine_segments(self, segments):
+    def _combine_segments(self, segments: List[dict]):
         stale_indexes = []
         for index, segment in enumerate(segments):
             segment["text"] = self._cleanup_text(segment["text"].strip())
@@ -174,3 +197,9 @@ class AVSearch:
         for sub in self._cleanup_patterns:
             text = re.sub(sub["symbol"], sub["value"], text, flags=re.I)
         return text
+
+    def _get_video_id(self, file: str) -> str:
+        groups = re.search(r".+-([A-Za-z0-9_\-]{11}).m4a", file).groups()
+        if not len(groups):
+            return None
+        return groups[0]
