@@ -48,6 +48,12 @@ from .utils import load_config
     default="bestaudio[ext=m4a]",
 )
 @click.option(
+    "--use-download-archive/--no-download-archive",
+    help="""Use YouTube DL's download archive feature to only download
+    and process videos that have not been downloaded before""",
+    default=False,
+)
+@click.option(
     "--combine-short-segments/--no-combine-short-segments",
     help="Combine short segments of three words or less with the previous segment.",
     default=True,
@@ -72,6 +78,7 @@ def cli(
     categories_json_file: str,
     whisper_model: str,
     youtube_dl_format: str,
+    use_download_archive: bool,
     combine_short_segments: bool,
     exit_on_error: bool,
     remove_after_transcribe: bool,
@@ -88,6 +95,7 @@ def cli(
         categories_json_file,
         whisper_model,
         youtube_dl_format,
+        use_download_archive,
         combine_short_segments,
         remove_after_transcribe,
         exit_on_error,

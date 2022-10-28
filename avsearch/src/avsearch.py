@@ -1,6 +1,7 @@
 from algoliasearch.search_client import SearchClient
 import logging
 import os
+from pathlib import PosixPath
 import re
 from typing import List
 import uuid
@@ -14,6 +15,7 @@ from .schemas import cleanup_patterns_schema, category_patterns_schema
 class AVSearch:
     _model = None
     _downloaded = []
+    _file_errors = []
     _cleanup_patterns = []
     _categories_patterns = []
 
@@ -26,6 +28,7 @@ class AVSearch:
         categories_json_file: str = None,
         whisper_model: str = "medium",
         youtube_dl_format: str = "bestaudio[ext=m4a]",
+        use_download_archive: bool = False,
         combine_short_segments: bool = True,
         remove_after_transcription: bool = True,
         exit_on_error: bool = True,
@@ -36,6 +39,7 @@ class AVSearch:
         self.remove_after_transcription = remove_after_transcription
         self.exit_on_error = exit_on_error
         self.quiet = quiet
+        self.use_download_archive = use_download_archive
 
         # Setup custom logging format
         logging.basicConfig(
@@ -44,10 +48,9 @@ class AVSearch:
         )
 
         # Setup YouTube-DL options
-        self.ytdl_opts = {
-            "format": youtube_dl_format,
-            "progress_hooks": [self._progress_hook],
-        }
+        self.ytdl_opts = {"format": youtube_dl_format, "progress_hooks": [self._progress_hook]}
+        if self.use_download_archive:
+            self._setup_download_archive()
 
         # Setup our Algolia Client & Index
         self.client = SearchClient.create(app_id, api_key)
@@ -61,15 +64,19 @@ class AVSearch:
 
     def transcribe(self, urls: List[str]) -> List[dict]:
         self._downloaded.clear()
+        self._file_errors.clear()
 
         # Download each video in the queue
         with youtube_dl.YoutubeDL(self.ytdl_opts) as ydl:
             ydl.download(urls)
 
         # Check if we were able to download everything if required
-        if len(self._downloaded) != len(urls) and self.exit_on_error:
+        if len(self._file_errors) > 0 and self.exit_on_error:
             if not self.quiet:
-                logging.error("Error: An error occurred downloading a file and exit_on_error was set to True!")
+                logging.error(
+                    f"""Error: An error occurred downloading and exit_on_error was set to True!
+                     ({', '.join(self._file_errors)})"""
+                )
             return
 
         # Ensure the model has been loaded
@@ -123,11 +130,18 @@ class AVSearch:
             if self.remove_after_transcription:
                 os.unlink(file)
 
+        if not self.quiet:
+            logging.info("Done transcribing videos, starting sync to Algolia.")
+
         # Flatten the list of lists into a single list
         transcriptions = [item for sub in transcriptions for item in sub]
 
-        # Save the transcriptions into our Algolia Index
-        self.index.save_objects(transcriptions).wait()
+        # Break the records into 10k record chunks
+        chunks = [transcriptions[i : i + 10000] for i in range(0, len(transcriptions), 10000)]  # noqa: E203
+
+        # Save the transcription chunks into our Algolia Index
+        for chunk in chunks:
+            self.index.save_objects(chunk).wait()
 
         # All done!
         if not self.quiet:
@@ -140,6 +154,9 @@ class AVSearch:
         self._model = whisper.load_model(self.whisper_model)
 
     def _progress_hook(self, file: dict) -> None:
+        # Check if an error occurred
+        if file["status"] not in ["downloading", "finished"]:
+            self._file_errors.append(file["filename"])
         # Update the list once it has finished downloading
         if file["status"] == "finished":
             self._downloaded.append(file["filename"].encode("utf-8"))
@@ -190,3 +207,9 @@ class AVSearch:
         if not len(groups):
             return None
         return groups[0]
+
+    def _setup_download_archive(self) -> None:
+        path = PosixPath("~/.config/algolia").expanduser().resolve()
+        # Create the directory if it doesn't exist yet
+        path.mkdir(parents=True, exist_ok=True)
+        self.ytdl_opts["download_archive"] = PosixPath(f"{path}/.avsearch-archive")

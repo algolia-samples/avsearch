@@ -9,7 +9,7 @@ repos:
       args: [
         --line-length=120,
         --target-version=py37,
-	      avsearch
+        avsearch
       ]
       exclude: ^(venv/|docs/|dist/)
       types: ['python']
@@ -20,7 +20,7 @@ repos:
       args: [
         --max-line-length=120,
         --per-file-ignores=avsearch/__init__.py:F401,
-	      avsearch
+        avsearch
       ]
       exclude: ^(venv/|docs/dist/)
       types: ['python']
