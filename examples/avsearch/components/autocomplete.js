@@ -22,7 +22,7 @@ export default function Autocomplete(props) {
       render({ children }, root) {
         render(children, root);
       },
-      placeholder: "Search for sessions",
+      placeholder: "Search sessions",
       detachedMediaQuery: '',
       openOnFocus: true,
       getSources({ query, state }) {
@@ -43,7 +43,8 @@ export default function Autocomplete(props) {
                     params: {
                       attributesToSnippet: ['videoTitle:10', 'text:20'],
                       snippetEllipsisText: '…',
-                      hitsPerPage: 10
+                      hitsPerPage: 10,
+                      distinct: 3
                     }
                   }
                 ]
@@ -75,7 +76,7 @@ export default function Autocomplete(props) {
                           })}
                       </div>
                       <div class="aa-ItemContentSubtitle">
-                          ${item.categories}
+                          ${item.categories.join(', ')}
                       </div>
                       <div class="aa-ItemContentDescription">
                         ${components.Snippet({
