@@ -55,6 +55,14 @@ const { setIsOpen } = autocomplete({
             return (
               <a className="aa-ItemLink" href={item.url}>
                 <div className="aa-ItemContent">
+                  <div className="aa-ItemIcon">
+                    <img
+                      src={item.thumbnail}
+                      alt={item.name}
+                      width="40"
+                      height="40"
+                    />
+                  </div>
                   <div className="aa-ItemContentBody">
                     <div className="aa-ItemContentTitle">
                       <components.Snippet hit={item} attribute="videoTitle" />
@@ -109,7 +117,6 @@ const { setIsOpen } = autocomplete({
 
 document.addEventListener('keydown', (event) => {
   if (event.metaKey && event.key.toLowerCase() === 'k') {
-    alert('Woop!');
     setIsOpen(true);
   }
 });
