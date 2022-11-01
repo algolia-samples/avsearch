@@ -124,6 +124,7 @@ body[data-theme="dark"] {
 }
 
 .aa-PreviewTitle {
+  color: var(--aa-primary-color-rgb);
   margin-bottom: var(--aa-spacing-half);
   font-weight: bold;
 }
@@ -138,9 +139,15 @@ body[data-theme="dark"] {
   max-width: 100%;
   padding: 0.3em 0;
   font-size: 0.85em;
-  color: var(--aa-content-text-color);
+  color: var(--aa-text-color-rgb);
   overflow-x: hidden;
   text-overflow: ellipsis;
+}
+
+.aa-PreviewTime {
+  padding: 0.5em 0;
+  font-size: 0.85em;
+  color: var(--aa-muted-color-rgb);
 }
 
 .aa-PreviewTitle mark,
