@@ -31,7 +31,6 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
 }
 
@@ -105,6 +104,11 @@ body[data-theme="dark"] {
 
 .aa-DetachedContainer--modal .aa-Preview {
   display: block;
+}
+
+.aa-PreviewLink {
+  color: inherit;
+  text-decoration: none;
 }
 
 .aa-PreviewImage {

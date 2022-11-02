@@ -16,7 +16,7 @@ const { setIsOpen } = autocomplete({
   detachedMediaQuery: '',
   openOnFocus: true,
   defaultActiveItemId: 0,
-  placeholder: 'Search Sessions',
+  placeholder: 'Search sessions',
   getSources({ query, state }) {
     if (!query) {
       return [];
@@ -54,7 +54,7 @@ const { setIsOpen } = autocomplete({
           },
           item({ item, components }) {
             return (
-              <a className='aa-ItemLink' href={item.url}>
+              <a className='aa-ItemLink' href={item.url} target='_blank'>
                 <div className='aa-ItemContent'>
                   <div className='aa-ItemIcon'>
                     <img
@@ -69,6 +69,15 @@ const { setIsOpen } = autocomplete({
                       <components.Snippet hit={item} attribute='videoTitle' />
                     </div>
                   </div>
+                </div>
+                <div className="aa-ItemActions">
+                  <button
+                    className="aa-ItemActionButton aa-DesktopOnly aa-ActiveOnly"
+                    type="button"
+                    title="Watch"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-youtube"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>
+                  </button>
                 </div>
               </a>
             );
@@ -94,6 +103,7 @@ const { setIsOpen } = autocomplete({
           <div className='aa-Grid'>
             <div className='aa-Results aa-Column'>{children}</div>
             {state.query !== '' && (
+              <a className='aa-PreviewLink' href={preview.url} target='_blank'>
               <div className='aa-Preview aa-Column'>
                 <div className='aa-PreviewImage'>
                   <img src={preview.thumbnail} alt={preview.videoTitle} />
@@ -112,6 +122,7 @@ const { setIsOpen } = autocomplete({
                   <components.Highlight hit={preview} attribute='text' />
                 </div>
               </div>
+              </a>
             )}
           </div>
         </Fragment>,
