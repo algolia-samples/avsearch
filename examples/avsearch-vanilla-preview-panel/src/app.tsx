@@ -17,14 +17,10 @@ const { setIsOpen } = autocomplete({
   openOnFocus: true,
   defaultActiveItemId: 0,
   placeholder: 'Search sessions',
-  getSources({ query, state }) {
-    if (!query) {
-      return [];
-    }
-
+  getSources() {
     return [
       {
-        sourceId: 'hits',
+        sourceId: 'sessions',
         getItems({ query }) {
           return getAlgoliaResults({
             searchClient,
@@ -33,10 +29,10 @@ const { setIsOpen } = autocomplete({
                 indexName: 'devcon-22-sessions',
                 query,
                 params: {
-                  attributesToSnippet: ['videoTitle:10', "text:20"],
+                  attributesToSnippet: ['videoTitle:10', 'text:20'],
                   snippetEllipsisText: '…',
                   hitsPerPage: 10,
-                  distinct: 3
+                  distinct: 1
                 }
               }
             ]
@@ -54,19 +50,19 @@ const { setIsOpen } = autocomplete({
           },
           item({ item, components }) {
             return (
-              <a className='aa-ItemLink' href={item.url} target='_blank'>
-                <div className='aa-ItemContent'>
-                  <div className='aa-ItemIcon'>
+              <a className="aa-ItemLink" href={item.url} target="_blank">
+                <div className="aa-ItemContent">
+                  <div className="aa-ItemIcon">
                     <img
                       src={item.thumbnail}
-                      alt={item.name}
-                      width='40'
-                      height='40'
+                      alt={item.videoTitle}
+                      width="40"
+                      height="40"
                     />
                   </div>
-                  <div className='aa-ItemContentBody'>
-                    <div className='aa-ItemContentTitle'>
-                      <components.Snippet hit={item} attribute='videoTitle' />
+                  <div className="aa-ItemContentBody">
+                    <div className="aa-ItemContentTitle">
+                      <components.Snippet hit={item} attribute="videoTitle" />
                     </div>
                   </div>
                 </div>
@@ -83,52 +79,86 @@ const { setIsOpen } = autocomplete({
             );
           }
         }
-      }
+      },
+      {
+        sourceId: 'suggestions',
+        getItems({ query }) {
+          return getAlgoliaResults({
+            searchClient,
+            queries: [
+              {
+                indexName: 'devcon-22-sessions_query_suggestions',
+                query,
+                params: {
+                  hitsPerPage: 4,
+                },
+              },
+            ],
+          });
+        },
+        onSelect({ item, setQuery, setIsOpen, refresh }) {
+          setQuery(`${item.query} `);
+          setIsOpen(true);
+          refresh();
+        },
+        templates: {
+          header({ items, Fragment }) {
+            if (items.length === 0) {
+              return null;
+            }
+
+            return (
+              <Fragment>
+                <span className="aa-SourceHeaderTitle">
+                  Suggestions
+                </span>
+                <div className="aa-SourceHeaderLine" />
+              </Fragment>
+            );
+          },
+          item({ item, components }) {
+            return (
+              <div className="aa-QuerySuggestion">
+                <components.ReverseHighlight hit={item} attribute="query" />
+              </div>
+            );
+          },
+        },
+      },
     ];
   },
   render({ children, state, Fragment, components }, root) {
     const { preview } = state.context;
-    if (!preview) {
-      render(
-        <Fragment>
-          <div className='aa-Grid'>
-            <div className='aa-Results aa-Column'>{children}</div>
-          </div>
-        </Fragment>,
-        root
-      );
-    } else {
-      render(
-        <Fragment>
-          <div className='aa-Grid'>
-            <div className='aa-Results aa-Column'>{children}</div>
-            {state.query !== '' && (
-              <a className='aa-PreviewLink' href={preview.url} target='_blank'>
-              <div className='aa-Preview aa-Column'>
-                <div className='aa-PreviewImage'>
-                  <img src={preview.thumbnail} alt={preview.videoTitle} />
-                </div>
-                <div className='aa-PreviewTitle'>
-                  <components.Snippet hit={preview} attribute='videoTitle' />
-                </div>
-                <div className='aa-PreviewTime'>
-                  {preview.start.toTimeString()}-{preview.end.toTimeString()}
-                </div>
-                <div class='aa-PreviewContentSubtitle'>
-                  {preview.categories.join(', ')}
-                </div>
-                <hr />
-                <div className='aa-ItemContentDescription'>
-                  <components.Highlight hit={preview} attribute='text' />
-                </div>
+    render(
+      <Fragment>
+        <div className="aa-Grid">
+          <div className="aa-Results aa-Column">{children}</div>
+          {state.query !== '' && state.collections[0].items.length !== 0 && (            
+            <a className="aa-PreviewLink" href={preview.url} target="_blank">
+            <div className="aa-Preview aa-Column">
+              <div className="aa-PreviewImage">
+                <img src={preview.thumbnail} alt={preview.videoTitle} />
               </div>
-              </a>
-            )}
-          </div>
-        </Fragment>,
-        root
-      );
-    }
+              <div className="aa-PreviewTitle">
+                <components.Snippet hit={preview} attribute="videoTitle" />
+              </div>
+              <div className="aa-PreviewTime">
+                {preview.start.toTimeString()}-{preview.end.toTimeString()}
+              </div>
+              <div class="aa-PreviewContentSubtitle">
+                {preview.categories.join(', ')}
+              </div>
+              <hr />
+              <div className="aa-ItemContentDescription">
+                <components.Highlight hit={preview} attribute="text" />
+              </div>
+            </div>
+            </a>
+          )}
+        </div>
+      </Fragment>,
+      root
+    );
   }
 });
 
