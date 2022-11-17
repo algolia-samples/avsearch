@@ -1,0 +1,6 @@
+[
+  { "symbol": "InstantSearch", "category": "instantsearch" },
+  { "symbol": "Autocomplete", "category": "autocomplete" },
+  { "symbol": "Webflow", "category": "webflow" },
+  { "symbol": "React", "category": "react" }
+]

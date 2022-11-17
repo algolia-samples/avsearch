@@ -9,6 +9,7 @@ from .errors import (
     MissingConfigurationFileError,
 )
 
+
 # Ensure the Algolia configuration is provided
 def load_config(app_id: str, index_name: str, api_key: str) -> Tuple[str, str, str]:
     config = {
@@ -34,9 +35,7 @@ def load_config(app_id: str, index_name: str, api_key: str) -> Tuple[str, str, s
                 lambda item: item[0],
                 filter(lambda item: item[1]["env"] is None, config.items()),
             )
-            raise MissingConfigurationError(
-                f"Missing configuration value(s): {', '.join(missing)}"
-            )
+            raise MissingConfigurationError(f"Missing configuration value(s): {', '.join(missing)}")
         # Otherwise, load it from the environment variables
         else:
             app_id, index_name, api_key = env_config
@@ -47,15 +46,11 @@ def load_file(file_path: str, schema: Schema):
     file_path = os.path.abspath(file_path)
     # Ensure the file exists
     if not os.path.exists(file_path):
-        raise MissingConfigurationFileError(
-            f"Specified configuration file is missing: {file_path}"
-        )
+        raise MissingConfigurationFileError(f"Specified configuration file is missing: {file_path}")
     with open(file_path, "r") as f:
         content = json.load(f)
     # Ensure the file content matches our schema
     if schema.validate(content):
         return content
     else:
-        raise InvalidFileSchemaError(
-            f"File contents do not follow the required schema: {file_path} {schema}"
-        )
+        raise InvalidFileSchemaError(f"File contents do not follow the required schema: {file_path} {schema}")

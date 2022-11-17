@@ -19,12 +19,14 @@ from .utils import load_config
 )
 @click.option(
     "--algolia-index-name",
-    help="Algolia Index name to upload the transcriptions to (can also be set via the environment variable ALGOLIA_INDEX_NAME)",
+    help="""Algolia Index name to upload the transcriptions to
+    (can also be set via the environment variable ALGOLIA_INDEX_NAME)""",
     default=None,
 )
 @click.option(
     "--algolia-api-key",
-    help="Algolia Write API Key to upload the transcriptions with (can also be set via the environment variable ALGOLIA_API_KEY)",
+    help="""Algolia Write API Key to upload the transcriptions with
+    (can also be set via the environment variable ALGOLIA_API_KEY)""",
     default=None,
 )
 @click.option(
@@ -44,6 +46,12 @@ from .utils import load_config
     "--youtube-dl-format",
     help="Format option to pass to YouTube DL to download source video in (https://alg.li/AwDfRu)",
     default="bestaudio[ext=m4a]",
+)
+@click.option(
+    "--use-download-archive/--no-download-archive",
+    help="""Use YouTube DL's download archive feature to only download
+    and process videos that have not been downloaded before""",
+    default=False,
 )
 @click.option(
     "--combine-short-segments/--no-combine-short-segments",
@@ -70,14 +78,13 @@ def cli(
     categories_json_file: str,
     whisper_model: str,
     youtube_dl_format: str,
+    use_download_archive: bool,
     combine_short_segments: bool,
     exit_on_error: bool,
     remove_after_transcribe: bool,
 ):
     # If the configuration is not passed via an argument, load it via environment variables
-    app_id, index_name, api_key = load_config(
-        algolia_app_id, algolia_index_name, algolia_api_key
-    )
+    app_id, index_name, api_key = load_config(algolia_app_id, algolia_index_name, algolia_api_key)
 
     # Instantiate class
     avs = AVSearch(
@@ -88,6 +95,7 @@ def cli(
         categories_json_file,
         whisper_model,
         youtube_dl_format,
+        use_download_archive,
         combine_short_segments,
         remove_after_transcribe,
         exit_on_error,

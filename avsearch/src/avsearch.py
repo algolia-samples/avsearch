@@ -1,10 +1,9 @@
 from algoliasearch.search_client import SearchClient
-import json
 import logging
 import os
+from pathlib import PosixPath
 import re
 from typing import List
-import uuid
 import whisper
 import youtube_dl
 
@@ -15,6 +14,7 @@ from .schemas import cleanup_patterns_schema, category_patterns_schema
 class AVSearch:
     _model = None
     _downloaded = []
+    _file_errors = []
     _cleanup_patterns = []
     _categories_patterns = []
 
@@ -27,6 +27,7 @@ class AVSearch:
         categories_json_file: str = None,
         whisper_model: str = "medium",
         youtube_dl_format: str = "bestaudio[ext=m4a]",
+        use_download_archive: bool = False,
         combine_short_segments: bool = True,
         remove_after_transcription: bool = True,
         exit_on_error: bool = True,
@@ -37,17 +38,18 @@ class AVSearch:
         self.remove_after_transcription = remove_after_transcription
         self.exit_on_error = exit_on_error
         self.quiet = quiet
+        self.use_download_archive = use_download_archive
 
         # Setup custom logging format
         logging.basicConfig(
-            level=logging.INFO, format="[A/V-Search] [%(levelname)s] %(message)s"
+            level=logging.INFO,
+            format="[A/V-Search] [%(levelname)s] %(message)s",
         )
 
         # Setup YouTube-DL options
-        self.ytdl_opts = {
-            "format": youtube_dl_format,
-            "progress_hooks": [self._progress_hook],
-        }
+        self.ytdl_opts = {"format": youtube_dl_format, "progress_hooks": [self._progress_hook]}
+        if self.use_download_archive:
+            self._setup_download_archive()
 
         # Setup our Algolia Client & Index
         self.client = SearchClient.create(app_id, api_key)
@@ -55,26 +57,24 @@ class AVSearch:
 
         # Load, parse and validate JSON files if needed:
         if pattern_replace_json_file:
-            self._cleanup_patterns = load_file(
-                pattern_replace_json_file, cleanup_patterns_schema
-            )
+            self._cleanup_patterns = load_file(pattern_replace_json_file, cleanup_patterns_schema)
         if categories_json_file:
-            self._categories_patterns = load_file(
-                categories_json_file, category_patterns_schema
-            )
+            self._categories_patterns = load_file(categories_json_file, category_patterns_schema)
 
-    def transcribe(self, urls: List[str]):
+    def transcribe(self, urls: List[str]) -> List[dict]:
         self._downloaded.clear()
+        self._file_errors.clear()
 
         # Download each video in the queue
         with youtube_dl.YoutubeDL(self.ytdl_opts) as ydl:
             ydl.download(urls)
 
         # Check if we were able to download everything if required
-        if len(self._downloaded) != len(urls) and self.exit_on_error:
+        if len(self._file_errors) > 0 and self.exit_on_error:
             if not self.quiet:
                 logging.error(
-                    "Error: An error occurred downloading a file and exit_on_error was set to True!"
+                    f"""Error: An error occurred downloading and exit_on_error was set to True!
+                     ({', '.join(self._file_errors)})"""
                 )
             return
 
@@ -106,9 +106,8 @@ class AVSearch:
                     None,
                 )
                 if record is None:
-                    logging.error(
-                        f"Unable to locate metadata record for file, can't process video: {file}"
-                    )
+                    if not self.quiet:
+                        logging.error(f"Unable to locate metadata record for file, can't process video: {file}")
                     return
                 else:
                     meta = record
@@ -130,34 +129,40 @@ class AVSearch:
             if self.remove_after_transcription:
                 os.unlink(file)
 
+        if not self.quiet:
+            logging.info("Done transcribing videos, starting sync to Algolia.")
+
         # Flatten the list of lists into a single list
         transcriptions = [item for sub in transcriptions for item in sub]
 
-        # Save the transcriptions into our Algolia Index
-        self.index.save_objects(transcriptions).wait()
+        # Break the records into 10k record chunks
+        chunks = [transcriptions[i : i + 10000] for i in range(0, len(transcriptions), 10000)]  # noqa: E203
+
+        # Save the transcription chunks into our Algolia Index
+        for chunk in chunks:
+            self.index.save_objects(chunk).wait()
 
         # All done!
         if not self.quiet:
-            logging.info(
-                f"Successfully saved {len(transcriptions)} transcription segments into your Index."
-            )
+            logging.info(f"Successfully saved {len(transcriptions)} transcription segments into your Index.")
         return transcriptions
 
     def _setup_model(self) -> None:
         if not self.quiet:
-            logging.info(
-                f"Loading Whisper's {self.whisper_model} model, please wait..."
-            )
+            logging.info(f"Loading Whisper's {self.whisper_model} model, please wait...")
         self._model = whisper.load_model(self.whisper_model)
 
     def _progress_hook(self, file: dict) -> None:
+        # Check if an error occurred
+        if file["status"] not in ["downloading", "finished"]:
+            self._file_errors.append(file["filename"])
         # Update the list once it has finished downloading
         if file["status"] == "finished":
             self._downloaded.append(file["filename"].encode("utf-8"))
 
-    def _parse_segment(self, meta: dict, segment: dict):
+    def _parse_segment(self, meta: dict, segment: dict) -> dict:
         return {
-            "objectID": str(uuid.uuid4()),
+            "objectID": f"{meta['id']}-{segment['id']}",
             "videoID": meta["id"],
             "videoTitle": meta["title"],
             "videoDescription": meta["description"],
@@ -169,7 +174,7 @@ class AVSearch:
             "categories": self._categorize_segment(segment["text"]),
         }
 
-    def _combine_segments(self, segments: List[dict]):
+    def _combine_segments(self, segments: List[dict]) -> List[dict]:
         stale_indexes = []
         for index, segment in enumerate(segments):
             segment["text"] = self._cleanup_text(segment["text"].strip())
@@ -186,9 +191,7 @@ class AVSearch:
 
     def _categorize_segment(self, text: str) -> List[str]:
         categories = map(
-            lambda pat: pat["category"]
-            if re.search(pat["symbol"], text, flags=re.I)
-            else None,
+            lambda pat: pat["category"] if re.search(pat["symbol"], text, flags=re.I) else None,
             self._categories_patterns,
         )
         return list(filter(lambda val: val is not None, categories))
@@ -203,3 +206,9 @@ class AVSearch:
         if not len(groups):
             return None
         return groups[0]
+
+    def _setup_download_archive(self) -> None:
+        path = PosixPath("~/.config/algolia").expanduser().resolve()
+        # Create the directory if it doesn't exist yet
+        path.mkdir(parents=True, exist_ok=True)
+        self.ytdl_opts["download_archive"] = PosixPath(f"{path}/.avsearch-archive")
