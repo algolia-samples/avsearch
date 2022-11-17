@@ -10,6 +10,11 @@
       href="https://cdn.jsdelivr.net/npm/@algolia/autocomplete-theme-classic"
     />
     <link rel="stylesheet" href="style.css" />
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@algolia/autocomplete-theme-classic"
+    />
     <style>
       :root {
         --aa-icon-size: 80px;
@@ -30,8 +35,7 @@
       const appId = "OKF83BFQS4";
       const apiKey = "2ee1381ed11d3fe70b60605b1e2cd3f4";
       const searchClient = algoliasearch(appId, apiKey);
-      // const indexName = "chuck-video-index";
-      const indexName = "devcon-22-sessions";
+      const indexName = "chuck-video-index";
 
       const { setIsOpen } = autocomplete({
           container: "#autocomplete",
@@ -65,27 +69,28 @@
                 templates: {
                   header() {
                     return (
-                      "Sessions"
+                      "Posts"
                     );
                   },
                   item({ item, components, html }) {
                     return html`<div class="aa-ItemWrapper">
-                      <a href="${item.url}">
                       <div class="aa-ItemContent">
                         <div class="aa-ItemIcon aa-ItemIcon--alignTop">
-                          <img
+                          <a href="${item.url}"><img
                             src="${item.thumbnail}"
                             alt="${item.title}"
                             width="80"
                             height="80"
-                          />
+                          /></a>
                         </div>
                         <div class="aa-ItemContentBody">
                           <div class="aa-ItemContentTitle">
+                            <a href="${item.url}">
                               ${components.Snippet({
                                 hit: item,
                                 attribute: 'videoTitle',
                               })}
+                            </a>
                           </div>
                           <div class="aa-ItemContentSubtitle">
                               <strong>${item.categories}</strong>
@@ -98,7 +103,6 @@
                           </div>
                         </div>
                       </div>
-                      </a>
                     </div>`;
                   },
                   noResults() {
