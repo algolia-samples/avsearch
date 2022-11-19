@@ -166,6 +166,10 @@ body[data-theme="dark"] {
   vertical-align: -0.4em;
 }
 
+.aa-PreviewContent p {
+  display: inline;
+}
+
 [data-autocomplete-source-id="sesions"] {
   margin-bottom: var(--aa-spacing-half);
 }
