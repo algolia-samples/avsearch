@@ -1,4 +1,3 @@
-/** @jsx h */
 import { h, render } from 'preact';
 import '../util/number.extensions';
 import { autocomplete, getAlgoliaResults } from '@algolia/autocomplete-js';
@@ -17,17 +16,12 @@ const querySuggestionsPlugin = createQuerySuggestionsPlugin({
   getSearchParams({ state }) {
     return { hitsPerPage: state.query ? 3 : 5 };
   },
-  transformSource({ source }) {
-    return {
-      ...source,
-      onSelect({ item }) {
-        setQuery(`${item.query} `);
-        setIsOpen(true);
-        refresh();
-      },
-    };
-  },
 });
+
+function changeChannel() {
+  console.log('Boop!');
+  document.getElementById('ytVideo').src = "https://www.youtube.com/embed/ISoRfSYRGG0?t=722";
+}
 
 const { setIsOpen } = autocomplete({
   container: '#autocomplete',
@@ -93,8 +87,8 @@ const { setIsOpen } = autocomplete({
                     <img
                       src={item.thumbnail}
                       alt={item.videoTitle}
-                      width="40"
-                      height="40"
+                      width="20"
+                      height="20"
                     />
                   </div>
                   <div className="aa-ItemContentBody">
@@ -106,6 +100,8 @@ const { setIsOpen } = autocomplete({
                 <div className="aa-ItemActions">
                   <button
                     className="aa-ItemActionButton aa-DesktopOnly aa-ActiveOnly"
+                    id="change-video-${item.ObjectID}"
+                    onClick={changeChannel}
                     type="button"
                     title="Watch"
                   >
@@ -119,21 +115,19 @@ const { setIsOpen } = autocomplete({
       }
     ];
   },
-
   render({ children, state, Fragment, components }, root) {
-    const { preview } = state.context;
+    const { preview } = state.context
     render(
       <Fragment>
         <div className="aa-Grid">
           <div className="aa-Results aa-Column">{children}</div>
-          {state.query !== '' && state.collections[1].items.length !== 0 && (            
+          {state.query !== '' && 'preview' in state.context && ( 
             <a className="aa-PreviewLink" href={preview.url} target="_blank">
             <div className="aa-Preview aa-Column">
-              <div className="aa-PreviewImage">
-                <img src={preview.thumbnail} alt={preview.videoTitle} />
-              </div>
-              <div className="aa-PreviewTitle">
-                <components.Snippet hit={preview} attribute="videoTitle" />
+              <div className="aa-PreviewContent">
+                <div className="aa-ItemContentDescription">
+                  <components.Highlight hit={preview} attribute="text" />
+                </div>
               </div>
               <div class="aa-PreviewTimeIcon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> 
@@ -141,14 +135,15 @@ const { setIsOpen } = autocomplete({
               <div className="aa-PreviewTime">
                 {preview.start.toTimeString()}-{preview.end.toTimeString()}
               </div>
+              <div className="aa-PreviewTitle">
+                <components.Snippet hit={preview} attribute="videoTitle" />
+              </div>
               <div class="aa-PreviewContentSubtitle">
                 {preview.categories.join(', ')}
               </div>
-              <div className="aa-PreviewContent">
-                  <div className="aa-ItemContentDescription">
-                    <components.Highlight hit={preview} attribute="text" />
-                  </div>
-                </div>
+              <div className="aa-PreviewImage">
+                <img src={preview.thumbnail} alt={preview.videoTitle} />
+              </div>
             </div>
             </a>
           )}

@@ -63,7 +63,7 @@ body[data-theme="dark"] {
   column-gap: calc(var(--aa-spacing-half) / 2);
 }
 
-.aa-Detsrc/achedContainer .aa-Grid {
+.aa-DetachedContainer .aa-Grid {
   grid-template-columns: 1fr;
 }
 
@@ -130,6 +130,7 @@ body[data-theme="dark"] {
   color: var(--aa-primary-color-rgb);
   margin-bottom: var(--aa-spacing-half);
   font-weight: bold;
+  font-size: 0.85em;
 }
 
 .aa-PreviewTimeIcon,
@@ -148,12 +149,24 @@ body[data-theme="dark"] {
 }
 
 .aa-PreviewContent {
+  background: #f9f9f9;
+  border-left: 10px solid #ccc;
+  margin: 1.5em 10px;
+  quotes: "\201C""\201D""\2018""\2019";
   font-style: italic;
-  padding: 1.0em;
+  padding: 1.0em 0.5em;
+}
+
+.aa-PreviewContent:before {
+  color: #ccc;
+  content: open-quote;
+  font-size: 4em;
+  line-height: 0.1em;
+  margin-right: 0.25em;
+  vertical-align: -0.4em;
 }
 
 [data-autocomplete-source-id="sesions"] {
   margin-bottom: var(--aa-spacing-half);
 }
-
 
