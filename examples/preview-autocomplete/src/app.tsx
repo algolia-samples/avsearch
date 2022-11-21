@@ -1,4 +1,4 @@
-import { h, render } from 'preact';
+import { h, render, Fragment } from 'preact';
 import '../util/number.extensions';
 import { autocomplete, getAlgoliaResults } from '@algolia/autocomplete-js';
 import algoliasearch from 'algoliasearch/lite';
@@ -15,6 +15,22 @@ const querySuggestionsPlugin = createQuerySuggestionsPlugin({
   indexName: 'devcon-22-sessions_query_suggestions',
   getSearchParams({ state }) {
     return { hitsPerPage: state.query ? 3 : 5 };
+  },
+  transformSource({ source }) {
+    return {
+      ...source,
+      templates: {
+        ...source.templates,
+        header({ state }) {
+          return (
+            <Fragment>
+              <span className="aa-SourceHeaderTitle">Suggestions</span>
+              <div className="aa-SourceHeaderLine" />
+            </Fragment>
+          );
+        },
+      },
+    };
   },
 });
 
@@ -42,10 +58,10 @@ const { setIsOpen } = autocomplete({
                 indexName: 'devcon-22-sessions',
                 query,
                 params: {
-                  attributesToSnippet: ['videoTitle:10', 'text:20'],
+                  attributesToSnippet: ['videoTitle:10'],
                   snippetEllipsisText: '…',
                   hitsPerPage: 10,
-                  distinct: 1
+                  distinct: 2
                 }
               }
             ]
