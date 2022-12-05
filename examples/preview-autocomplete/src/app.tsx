@@ -34,8 +34,8 @@ const querySuggestionsPlugin = createQuerySuggestionsPlugin({
   },
 });
 
-function changeChannel() {
-  console.log('Boop!');
+function changeChannel(vidID, time) {
+  console.log(vidID);
   document.getElementById('ytVideo').src = "https://www.youtube.com/embed/ISoRfSYRGG0?t=722";
 }
 
@@ -58,7 +58,7 @@ const { setIsOpen } = autocomplete({
                 indexName: 'devcon-22-sessions',
                 query,
                 params: {
-                  attributesToSnippet: ['videoTitle:10'],
+attributesToSnippet: ['videoTitle:10', 'text:10'],
                   snippetEllipsisText: '…',
                   hitsPerPage: 10,
                   distinct: 2
@@ -111,13 +111,16 @@ const { setIsOpen } = autocomplete({
                     <div className="aa-ItemContentTitle">
                       <components.Snippet hit={item} attribute="videoTitle" />
                     </div>
+                    <div className="aa-ItemContentDescription">
+                      <components.Snippet hit={item} attribute="text" />
+                    </div>
                   </div>
                 </div>
                 <div className="aa-ItemActions">
                   <button
                     className="aa-ItemActionButton aa-DesktopOnly aa-ActiveOnly"
                     id="change-video-${item.ObjectID}"
-                    onClick={changeChannel}
+                    onClick={() => alert(item.videoID)}
                     type="button"
                     title="Watch"
                   >
@@ -142,8 +145,11 @@ const { setIsOpen } = autocomplete({
             <div className="aa-Preview aa-Column">
               <div className="aa-PreviewContent">
                 <p className="aa-ItemContentDescription">
-                  <components.Highlight hit={preview} attribute="text" />
+                  ...{preview.context.before.text} <components.Highlight hit={preview} attribute="text" /> {preview.context.after.text}...
                 </p>
+              </div>
+              <div className="aa-PreviewTitle">
+                <components.Snippet hit={preview} attribute="videoTitle" />
               </div>
               <div class="aa-PreviewTimeIcon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> 
@@ -151,14 +157,11 @@ const { setIsOpen } = autocomplete({
               <div className="aa-PreviewTime">
                 {preview.start.toTimeString()}-{preview.end.toTimeString()}
               </div>
-              <div className="aa-PreviewTitle">
-                <components.Snippet hit={preview} attribute="videoTitle" />
+              <div className="aa-PreviewImage">
+                <img src={preview.thumbnail} alt={preview.videoTitle} />
               </div>
               <div class="aa-PreviewContentSubtitle">
                 {preview.categories.join(', ')}
-              </div>
-              <div className="aa-PreviewImage">
-                <img src={preview.thumbnail} alt={preview.videoTitle} />
               </div>
             </div>
             </a>
