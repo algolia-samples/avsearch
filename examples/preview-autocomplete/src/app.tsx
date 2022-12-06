@@ -2,14 +2,21 @@ import { h, render, Fragment } from 'preact';
 import '../util/number.extensions';
 import { autocomplete, getAlgoliaResults } from '@algolia/autocomplete-js';
 import algoliasearch from 'algoliasearch/lite';
-import { createQuerySuggestionsPlugin } from '@algolia/autocomplete-plugin-query-suggestions';
+import insightsClient from 'search-insights';
+import { createQuerySuggestionsPlugin } from '@algolia/autocomplete-plugin-query-suggestions'
+import { createAlgoliaInsightsPlugin } from '@algolia/autocomplete-plugin-algolia-insights';
 import '@algolia/autocomplete-theme-classic';
 
-const searchClient = algoliasearch(
-  'OKF83BFQS4',
-  '2ee1381ed11d3fe70b60605b1e2cd3f4'
-);
+// Configure our Algolia Search client to connect to our indices
+const appId = 'OKF83BFQS4';
+const apiKey = '2ee1381ed11d3fe70b60605b1e2cd3f4';
+const searchClient = algoliasearch(appId, apiKey);
 
+// Configure our Algolia Insight client to send click and conversion events
+insightsClient('init', { appId, apiKey, useCookie: true });
+const algoliaInsightsPlugin = createAlgoliaInsightsPlugin({ insightsClient });
+
+// Configure query suggestions
 const querySuggestionsPlugin = createQuerySuggestionsPlugin({
   searchClient,
   indexName: 'devcon-22-sessions_query_suggestions',
@@ -41,11 +48,11 @@ function changeChannel(vidID, time) {
 
 const { setIsOpen } = autocomplete({
   container: '#autocomplete',
-  detachedMediaQuery: '',
-  plugins: [querySuggestionsPlugin],
-  openOnFocus: true,
   defaultActiveItemId: 0,
+  detachedMediaQuery: '',
+  openOnFocus: true,
   placeholder: 'Search sessions',
+  plugins: [algoliaInsightsPlugin,querySuggestionsPlugin],
   getSources() {
     return [
       {
@@ -58,7 +65,8 @@ const { setIsOpen } = autocomplete({
                 indexName: 'devcon-22-sessions',
                 query,
                 params: {
-attributesToSnippet: ['videoTitle:10', 'text:10'],
+                  clickAnalytics: true,
+                  attributesToSnippet: ['videoTitle:10', 'text:10'],
                   snippetEllipsisText: '…',
                   hitsPerPage: 10,
                   distinct: 2
@@ -120,7 +128,9 @@ attributesToSnippet: ['videoTitle:10', 'text:10'],
                   <button
                     className="aa-ItemActionButton aa-DesktopOnly aa-ActiveOnly"
                     id="change-video-${item.ObjectID}"
-                    onClick={() => alert(item.videoID)}
+                    onClick={() => 
+                      alert(item.videoID)
+                    }
                     type="button"
                     title="Watch"
                   >
