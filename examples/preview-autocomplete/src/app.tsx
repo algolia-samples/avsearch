@@ -102,7 +102,7 @@ const { setIsOpen } = autocomplete({
             }
 
             return (
-							<div className="aa-ItemWrapper">
+              <div className="aa-ItemWrapper">
                 <div className="aa-ItemContent">
                   <div className="aa-ItemIcon">
                     <img
