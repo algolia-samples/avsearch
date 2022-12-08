@@ -1,5 +1,6 @@
 import { h, render, Fragment } from 'preact';
 import '../util/number.extensions';
+import { createLoadVideoPlugin } from './createLoadVideoPlugin';
 import { autocomplete, getAlgoliaResults } from '@algolia/autocomplete-js';
 import algoliasearch from 'algoliasearch/lite';
 import insightsClient from 'search-insights';
@@ -15,6 +16,10 @@ const searchClient = algoliasearch(appId, apiKey);
 // Configure our Algolia Insight client to send click and conversion events
 insightsClient('init', { appId, apiKey, useCookie: true });
 const algoliaInsightsPlugin = createAlgoliaInsightsPlugin({ insightsClient });
+
+const loadVideoPlugin = createLoadVideoPlugin({
+  container: 'ytVideo'
+});
 
 // Configure query suggestions
 const querySuggestionsPlugin = createQuerySuggestionsPlugin({
@@ -41,18 +46,13 @@ const querySuggestionsPlugin = createQuerySuggestionsPlugin({
   },
 });
 
-function changeChannel(vidID, time) {
-  console.log(vidID);
-  document.getElementById('ytVideo').src = "https://www.youtube.com/embed/ISoRfSYRGG0?t=722";
-}
-
 const { setIsOpen } = autocomplete({
   container: '#autocomplete',
   defaultActiveItemId: 0,
   detachedMediaQuery: '',
   openOnFocus: true,
   placeholder: 'Search sessions',
-  plugins: [algoliaInsightsPlugin,querySuggestionsPlugin],
+  plugins: [loadVideoPlugin,algoliaInsightsPlugin,querySuggestionsPlugin],
   getSources() {
     return [
       {
@@ -74,9 +74,6 @@ const { setIsOpen } = autocomplete({
               }
             ]
           })
-        },
-        getItemUrl({ item }) {
-          return item.url;
         },
         onActive({ item, setContext }) {
           setContext({ preview: item });
@@ -105,7 +102,7 @@ const { setIsOpen } = autocomplete({
             }
 
             return (
-              <a className="aa-ItemLink" href={item.url} target="_blank">
+              <div className="aa-ItemWrapper">
                 <div className="aa-ItemContent">
                   <div className="aa-ItemIcon">
                     <img
@@ -128,16 +125,13 @@ const { setIsOpen } = autocomplete({
                   <button
                     className="aa-ItemActionButton aa-DesktopOnly aa-ActiveOnly"
                     id="change-video-${item.ObjectID}"
-                    onClick={() => 
-                      alert(item.videoID)
-                    }
                     type="button"
                     title="Watch"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-youtube"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>
                   </button>
                 </div>
-              </a>
+              </div>
             )
           }
         }
@@ -151,7 +145,6 @@ const { setIsOpen } = autocomplete({
         <div className="aa-Grid">
           <div className="aa-Results aa-Column">{children}</div>
           {state.query !== '' && 'preview' in state.context && ( 
-            <a className="aa-PreviewLink" href={preview.url} target="_blank">
             <div className="aa-Preview aa-Column">
               <div className="aa-PreviewContent">
                 <p className="aa-ItemContentDescription">
@@ -174,7 +167,6 @@ const { setIsOpen } = autocomplete({
                 {preview.categories.join(', ')}
               </div>
             </div>
-            </a>
           )}
         </div>
       </Fragment>,

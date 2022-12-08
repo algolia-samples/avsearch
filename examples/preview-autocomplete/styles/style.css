@@ -23,15 +23,8 @@ body {
 .container {
   margin: 0 auto;
   padding: 0 2rem;
-}
-
-.main {
-  min-height: 100vh;
-  padding: 4rem 0;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  max-width: 640px;
+  width: 100%;
 }
 
 .title {
