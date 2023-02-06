@@ -1,0 +1,36 @@
+{
+  "alternativesAsExact": [
+    "ignorePlurals",
+    "singleWordSynonym"
+  ],
+  "attributeForDistinct": "videoTitle",
+  "distinct": 2,
+  "exactOnSingleWordQuery": "attribute",
+  "highlightPostTag": "</em>",
+  "highlightPreTag": "<em>",
+  "hitsPerPage": 20,
+  "maxValuesPerFacet": 100,
+  "minWordSizefor1Typo": 4,
+  "minWordSizefor2Typos": 8,
+  "paginationLimitedTo": 1000,
+  "queryType": "prefixLast",
+  "ranking": [
+    "typo",
+    "geo",
+    "words",
+    "filters",
+    "proximity",
+    "attribute",
+    "exact",
+    "custom"
+  ],
+  "removeWordsIfNoResults": "none",
+  "searchableAttributes": [
+    "unordered(text)",
+    "unordered(categories)",
+    "unordered(videoTitle)"
+  ],
+  "separatorsToIndex": "",
+  "snippetEllipsisText": "",
+  "version": 2
+}
