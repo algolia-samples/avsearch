@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "avsearch"
-version = "0.1.0"
+version = "0.1.1"
 description = "Automated YouTube Audio/Video content transcription search for your website"
 authors = ["Michael King <michael.king@algolia.com>", "Chuck Meyer <chuck.meyer@algolia.com>"]
 readme = "README.md"
