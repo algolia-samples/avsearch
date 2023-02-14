@@ -65,9 +65,9 @@ class AVSearch:
         self._downloaded.clear()
         self._file_errors.clear()
 
-        # Download each video in the queue
+        # Download each video and it's metadata in the queue
         with youtube_dl.YoutubeDL(self.ytdl_opts) as ydl:
-            ydl.download(urls)
+            all_metadata = ydl.extract_info(urls[0])
 
         # Check if we were able to download everything if required
         if len(self._file_errors) > 0 and self.exit_on_error:
@@ -84,33 +84,25 @@ class AVSearch:
 
         # For each file downloaded, transcribe the audio file
         transcriptions = []
-        for file_index, file in enumerate(self._downloaded):
+        for file in self._downloaded:
             file = file.decode("utf-8")
 
-            # Get the main URL (if a playlist), otherwise get the URL for this index
-            url = urls[0] if len(urls) == 1 else urls[file_index]
-
-            # Metadata retrieval
-            if not self.quiet:
-                logging.info(f"Retrieving metadata for: {url}")
-            with youtube_dl.YoutubeDL(self.ytdl_opts) as ydl:
-                meta = ydl.extract_info(url, download=False)
-
+            # Extract metadata if a single video
+            if "entries" not in all_metadata:
+                metadata = all_metadata
             # Extract specific video metadata if a playlist is used
-            if "entries" in meta:
-                record = next(
+            else:
+                metadata = next(
                     filter(
                         lambda entry: entry["id"] == self._get_video_id(file),
-                        meta["entries"],
+                        all_metadata["entries"],
                     ),
                     None,
                 )
-                if record is None:
+                if metadata is None:
                     if not self.quiet:
                         logging.error(f"Unable to locate metadata record for file, can't process video: {file}")
                     return
-                else:
-                    meta = record
 
             # Transcription / Parsing
             if not self.quiet:
@@ -119,7 +111,7 @@ class AVSearch:
             transcriptions.append(
                 list(
                     map(
-                        lambda segment: self._parse_segment(meta, segment),
+                        lambda segment: self._parse_segment(metadata, segment),
                         self._combine_segments(result["segments"])
                         if self.combine_short_segments
                         else result["segments"],
