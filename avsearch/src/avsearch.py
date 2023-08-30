@@ -10,7 +10,6 @@ import youtube_dl
 from .utils import load_file
 from .schemas import cleanup_patterns_schema, category_patterns_schema
 
-
 class AVSearch:
     _model = None
     _downloaded = []
@@ -127,6 +126,9 @@ class AVSearch:
         # Flatten the list of lists into a single list
         transcriptions = [item for sub in transcriptions for item in sub]
 
+        # Create the context links for each transcription
+        self._link_context(transcriptions)
+
         # Break the records into 10k record chunks
         chunks = [transcriptions[i : i + 10000] for i in range(0, len(transcriptions), 10000)]  # noqa: E203
 
@@ -138,6 +140,30 @@ class AVSearch:
         if not self.quiet:
             logging.info(f"Successfully saved {len(transcriptions)} transcription segments into your Index.")
         return transcriptions
+
+    def _link_context(self, transcriptions: List[dict]) -> None:
+        for index, transcription in enumerate(transcriptions):
+            before = { 'start': 0, 'text': '' }
+            after = { 'start': transcriptions[index]['end'], 'text': '' }
+            # Grab the preceding context (if not the first record)
+            if index != 0:
+                context = transcriptions[index - 1]
+                before = {
+                    'start': context['start'],
+                    'text': context['text']
+                }
+            # Grab the succeeding context (if not the last record)
+            if index != len(transcriptions) - 1:
+                context = transcriptions[index + 1]
+                after = {
+                    'start': context['start'],
+                    'text': context['text']
+                }
+            # Add the context to the record
+            transcription['context'] = {
+                'before': before,
+                'after': after
+            }
 
     def _setup_model(self) -> None:
         if not self.quiet:
