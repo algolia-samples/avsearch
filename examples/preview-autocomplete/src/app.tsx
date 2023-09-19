@@ -56,7 +56,88 @@ const { setIsOpen } = autocomplete({
   getSources() {
     return [
       {
-        sourceId: 'sessions',
+        sourceId: 'sessions-devcon-2023',
+        getItems({ query }) {
+          return getAlgoliaResults({
+            searchClient,
+            queries: [
+              {
+                indexName: 'devcon-23-sessions',
+                query,
+                params: {
+                  clickAnalytics: true,
+                  attributesToSnippet: ['videoTitle:10', 'text:10'],
+                  snippetEllipsisText: '…',
+                  hitsPerPage: 10,
+                  distinct: 2
+                }
+              }
+            ]
+          })
+        },
+        onActive({ item, setContext }) {
+          setContext({ preview: item });
+        },
+        templates: {
+          header({ items, state, Fragment }) {
+            if (items.length === 0 || state.query === '') {
+              return null;
+            }
+
+            return (
+              <Fragment>
+                <span className="aa-SourceHeaderTitle">
+                  Sessions DevCon 2023
+                </span>
+                <div className="aa-SourceHeaderLine" />
+              </Fragment>
+            );
+          },
+          noResults() {
+            return "No sessions match this query.";
+          },
+          item({ item, state, components }) {
+            if (state.query === '') {
+              return null;
+            }
+
+            return (
+              <div className="aa-ItemWrapper">
+                <div className="aa-ItemContent">
+                  <div className="aa-ItemIcon">
+                    <img
+                      src={item.thumbnail}
+                      alt={item.videoTitle}
+                      width="20"
+                      height="20"
+                    />
+                  </div>
+                  <div className="aa-ItemContentBody">
+                    <div className="aa-ItemContentTitle">
+                      <components.Snippet hit={item} attribute="videoTitle" />
+                    </div>
+                    <div className="aa-ItemContentDescription">
+                      <components.Snippet hit={item} attribute="text" />
+                    </div>
+                  </div>
+                </div>
+                <div className="aa-ItemActions">
+                  <button
+                    className="aa-ItemActionButton aa-DesktopOnly aa-ActiveOnly"
+                    id="change-video-${item.ObjectID}"
+                    type="button"
+                    title="Watch"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-youtube"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>
+                  </button>
+                </div>
+              </div>
+            )
+          }
+        }
+      },
+      {
+        sourceId: 'sessions-2022',
         getItems({ query }) {
           return getAlgoliaResults({
             searchClient,
@@ -87,7 +168,7 @@ const { setIsOpen } = autocomplete({
             return (
               <Fragment>
                 <span className="aa-SourceHeaderTitle">
-                  Sessions
+                  Sessions 2022
                 </span>
                 <div className="aa-SourceHeaderLine" />
               </Fragment>
