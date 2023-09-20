@@ -4,5 +4,7 @@
   { "symbol": "auto-complete", "value": "Autocomplete" },
   { "symbol": "webflow", "value": "Webflow" },
   { "symbol": "web flow", "value": "Webflow" },
-  { "symbol": "react", "value": "React" }
+  { "symbol": "react", "value": "React" },
+  { "symbol": "ChatGPD", "value": "ChatGPT" },
+  { "symbol": "neural search", "value": "NeuralSearch" }
 ]

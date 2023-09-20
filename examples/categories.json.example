@@ -2,5 +2,7 @@
   { "symbol": "InstantSearch", "category": "instantsearch" },
   { "symbol": "Autocomplete", "category": "autocomplete" },
   { "symbol": "Webflow", "category": "webflow" },
-  { "symbol": "React", "category": "react" }
+  { "symbol": "React", "category": "react" },
+  { "symbol": "NeuralSearch", "category": "neuralsearch" },
+  { "symbol": "Flutter", "category": "flutter" }
 ]
