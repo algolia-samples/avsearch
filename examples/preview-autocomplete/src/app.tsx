@@ -3,19 +3,13 @@ import '../util/number.extensions';
 import { createLoadVideoPlugin } from './createLoadVideoPlugin';
 import { autocomplete, getAlgoliaResults } from '@algolia/autocomplete-js';
 import algoliasearch from 'algoliasearch/lite';
-import insightsClient from 'search-insights';
 import { createQuerySuggestionsPlugin } from '@algolia/autocomplete-plugin-query-suggestions'
-import { createAlgoliaInsightsPlugin } from '@algolia/autocomplete-plugin-algolia-insights';
 import '@algolia/autocomplete-theme-classic';
 
 // Configure our Algolia Search client to connect to our indices
 const appId = 'OKF83BFQS4';
 const apiKey = '2ee1381ed11d3fe70b60605b1e2cd3f4';
 const searchClient = algoliasearch(appId, apiKey);
-
-// Configure our Algolia Insight client to send click and conversion events
-insightsClient('init', { appId, apiKey, useCookie: true });
-const algoliaInsightsPlugin = createAlgoliaInsightsPlugin({ insightsClient });
 
 const loadVideoPlugin = createLoadVideoPlugin({
   container: 'ytVideo'
@@ -51,8 +45,9 @@ const { setIsOpen } = autocomplete({
   defaultActiveItemId: 0,
   detachedMediaQuery: '',
   openOnFocus: true,
+  insights: true,
   placeholder: 'Search sessions',
-  plugins: [loadVideoPlugin,algoliaInsightsPlugin,querySuggestionsPlugin],
+  plugins: [loadVideoPlugin,querySuggestionsPlugin],
   getSources() {
     return [
       {
