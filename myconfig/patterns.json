@@ -1,0 +1,9 @@
+[
+  { "symbol": "instant search", "value": "InstantSearch" },
+  { "symbol": "auto complete", "value": "Autocomplete" },
+  { "symbol": "auto-complete", "value": "Autocomplete" },
+  { "symbol": "webflow", "value": "Webflow" },
+  { "symbol": "web flow", "value": "Webflow" },
+  { "symbol": "react", "value": "React" },
+  { "symbol": "air table", "value": "Airtable" }
+]

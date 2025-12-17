@@ -6,6 +6,7 @@ import re
 from typing import List
 import whisper
 import youtube_dl
+import json
 
 from .utils import load_file
 from .schemas import cleanup_patterns_schema, category_patterns_schema
@@ -107,6 +108,11 @@ class AVSearch:
             if not self.quiet:
                 logging.info(f"Starting transcription of: {file}")
             result = self._model.transcribe(file)
+
+            # Save transcription to text file
+            with open("transcription.txt", "a") as out_file:
+                out_file.write(json.dumps(result))
+
             transcriptions.append(
                 list(
                     map(
@@ -128,7 +134,7 @@ class AVSearch:
 
         # Create the context links for each transcription
         self._link_context(transcriptions)
-
+        
         # Break the records into 10k record chunks
         chunks = [transcriptions[i : i + 10000] for i in range(0, len(transcriptions), 10000)]  # noqa: E203
 
